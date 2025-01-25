@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <script>
+      class CryptoWorker {
+        async handleMessage(event) {
+          const { id, type, algorithm, data, key } = JSON.parse(event.data)
+          try {
+            let result
+            switch (type) {
+              case 'encrypt':
+                result = await this.encrypt(algorithm, key, data)
+                break
+              case 'decrypt':
+                result = await this.decrypt(algorithm, key, data)
+                break
+              case 'generateKey':
+                result = await this.generateKey(algorithm)
+                break
+            }
+            window.ReactNativeWebView.postMessage(JSON.stringify({ id, result, error: null }))
+          } catch (error) {
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({ id, result: null, error: error.message }),
+            )
+          }
+        }
+
+        async encrypt(algorithm, key, data) {
+          const cryptoKey = await this.importKey(key)
+          const encrypted = await window.crypto.subtle.encrypt(
+            { name: algorithm },
+            cryptoKey,
+            new TextEncoder().encode(data),
+          )
+          return Array.from(new Uint8Array(encrypted))
+        }
+
+        async decrypt(algorithm, key, data) {
+          const cryptoKey = await this.importKey(key)
+          const decrypted = await window.crypto.subtle.decrypt(
+            { name: algorithm },
+            cryptoKey,
+            new Uint8Array(data),
+          )
+          return new TextDecoder().decode(decrypted)
+        }
+
+        async generateKey(algorithm) {
+          const key = await window.crypto.subtle.generateKey(
+            {
+              name: algorithm,
+              modulusLength: 2048,
+              publicExponent: new Uint8Array([1, 0, 1]),
+              hash: 'SHA-256',
+            },
+            true,
+            ['encrypt', 'decrypt'],
+          )
+          return window.crypto.subtle.exportKey('jwk', key)
+        }
+
+        async importKey(jwk) {
+          return await window.crypto.subtle.importKey(
+            'jwk',
+            jwk,
+            {
+              name: 'RSA-OAEP',
+              hash: 'SHA-256',
+            },
+            true,
+            ['encrypt', 'decrypt'],
+          )
+        }
+      }
+
+      const worker = new CryptoWorker()
+      window.onmessage = (event) => worker.handleMessage(event)
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }))
+    </script>
+  </body>
+</html>
