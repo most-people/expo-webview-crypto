@@ -1,14 +1,119 @@
+<!DOCTYPE html>
 <html>
-    <head></head>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Crypto Worker</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/webview-crypto/0.1.0/webViewWorker.min.js"></script>
+    </head>
     <body>
         <script>
-            setTimeout(function () {
-                window.crypto.subtle
-                    .generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])
-                    .then((res) => {
-                        window.ReactNativeWebView?.postMessage(res.publicKey.type)
-                    })
-            }, 2000)
+            // 初始化 crypto 对象
+            if (typeof window.crypto !== 'object') {
+                window.crypto = {}
+            }
+
+            // 保存原始的 subtle 实现（如果存在）
+            const originalSubtle = window.crypto.subtle
+
+            if (typeof window.crypto.subtle !== 'object') {
+                window.crypto.subtle = {
+                    decrypt: function (...args) {
+                        if (originalSubtle && originalSubtle.decrypt) {
+                            return originalSubtle.decrypt.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    deriveBits: function (...args) {
+                        if (originalSubtle && originalSubtle.deriveBits) {
+                            return originalSubtle.deriveBits.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    deriveKey: function (...args) {
+                        if (originalSubtle && originalSubtle.deriveKey) {
+                            return originalSubtle.deriveKey.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    digest: function (...args) {
+                        if (originalSubtle && originalSubtle.digest) {
+                            return originalSubtle.digest.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    encrypt: function (...args) {
+                        if (originalSubtle && originalSubtle.encrypt) {
+                            return originalSubtle.encrypt.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    exportKey: function (...args) {
+                        if (originalSubtle && originalSubtle.exportKey) {
+                            return originalSubtle.exportKey.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    generateKey: function (...args) {
+                        if (originalSubtle && originalSubtle.generateKey) {
+                            return originalSubtle.generateKey.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    importKey: function (...args) {
+                        if (originalSubtle && originalSubtle.importKey) {
+                            return originalSubtle.importKey.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    sign: function (...args) {
+                        if (originalSubtle && originalSubtle.sign) {
+                            return originalSubtle.sign.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    unwrapKey: function (...args) {
+                        if (originalSubtle && originalSubtle.unwrapKey) {
+                            return originalSubtle.unwrapKey.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    verify: function (...args) {
+                        if (originalSubtle && originalSubtle.verify) {
+                            return originalSubtle.verify.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                    wrapKey: function (...args) {
+                        if (originalSubtle && originalSubtle.wrapKey) {
+                            return originalSubtle.wrapKey.apply(originalSubtle, args)
+                        }
+                        throw new Error('Subtle crypto not implemented')
+                    },
+                }
+            }
+
+            window.crypto.fake = true
+
+            // WebViewWorker 实现
+            ;(function () {
+                function postMessage(message) {
+                    if (window.ReactNativeWebView.postMessage === undefined) {
+                        setTimeout(postMessage, 200, message)
+                    } else {
+                        window.ReactNativeWebView.postMessage(message)
+                    }
+                }
+                var wvw = new WebViewWorker(postMessage)
+                // for android
+                window.document.addEventListener('message', function (e) {
+                    wvw.onMainMessage(e.data)
+                })
+                // for ios
+                window.addEventListener('message', function (e) {
+                    wvw.onMainMessage(e.data)
+                })
+            })()
         </script>
     </body>
 </html>
