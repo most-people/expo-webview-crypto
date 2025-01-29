@@ -1,17 +1,17 @@
-<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
+  <head></head>
+  <body>
     <script>
-      window.addEventListener("message", async (event) => {
-        const { id, method, args } = event.data;
-        try {
-          const result = await crypto.subtle[method](...args);
-          window.ReactNativeWebView.postMessage(JSON.stringify({ id, result }));
-        } catch (error) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ id, error }));
-        }
-      });
+      setTimeout(function () {
+        window.crypto.subtle
+          .generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, [
+            "sign",
+            "verify",
+          ])
+          .then((res) => {
+            window.ReactNativeWebView?.postMessage(res.publicKey.type);
+          });
+      }, 2000);
     </script>
-  </head>
+  </body>
 </html>
