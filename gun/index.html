@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gun.js open API</title>
+  </head>
+  <body>
+    <h1>Gun.js open API</h1>
+    <script src="/js/gun.js"></script>
+    <script src="/js/sea.js"></script>
+    <script>
+      const login = async () => {
+        if (wallet?.address && gun?.user) {
+          const user = gun.user();
+          user.leave();
+          const username = wallet.public_key;
+          const password = wallet.private_key;
+          user.auth(username, password, (ack) => {
+            if ("err" in ack) {
+              console.log("登录失败:", ack.err);
+              user.create(username, password, (ack) => {
+                if ("err" in ack) {
+                  console.log("注册失败:", ack.err);
+                } else {
+                  console.log("注册成功");
+                }
+              });
+            } else {
+              console.log("登录成功");
+            }
+          });
+        }
+      };
+
+      login();
+    </script>
+  </body>
+</html>
