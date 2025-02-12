@@ -20,7 +20,7 @@ def auto_actions():
     
     print("自动操作程序已就绪!")
     print("按 F10 开始/暂停自动点击")
-    print("每5分钟会自动按一次F5键")
+    print("每10分钟会自动按一次F5键")
     print("按 Ctrl+C 可以退出程序")
     
     # 注册F10热键
